@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>shared-properties-mixin demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
+
+    <link rel="import" href="../../polymer/polymer.html">
+    <link rel="import" href="../shared-properties-mixin.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    
+
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+        demo-component, demo-component2, demo-component3, demo-component4 {
+          display: inline-block;
+          padding: 10px;
+          margin: 5px;
+          border: 1px solid lightgrey;
+        }
+      </style>
+    </custom-style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Two instances of the same component sharing a property</h3>
+      <demo-snippet>
+        <template>
+
+          <demo-component></demo-component>
+          <demo-component></demo-component>
+
+          <script>
+            class DemoComponent extends SharedPropertiesMixin(Polymer.Element){
+              static get properties(){
+                return {
+                  prop: { 
+                    type: 'Number',
+                    value: 0,
+                    sharedStoreKey: 'commonProp' // <- The only config needed
+                  }
+                }
+              }
+              static get template() {
+                return Polymer.html`
+                  <h3>[[prop]]</h3>
+                  <button on-click="_increment">Increment</button>`;
+              }
+              _increment(){
+                this.prop++;
+              }
+            }
+
+            window.customElements.define('demo-component', DemoComponent);
+          </script>
+          </template>
+      </demo-snippet>
+    </div>
+    <div class="vertical-section-container centered">
+        <h3>Two instances of different components sharing a property</h3>
+        <demo-snippet>
+          <template>
+  
+            <demo-component2></demo-component2>
+            <demo-component3></demo-component3>
+  
+            <script>
+              class DemoComponent2 extends SharedPropertiesMixin(Polymer.Element){
+                static get properties(){
+                  return {
+                    prop2: { 
+                      type: 'Number',
+                      value: 0,
+                      sharedStoreKey: 'foo' 
+                    }
+                  }
+                }
+                static get template() {
+                  return Polymer.html`
+                    <p>         
+                      [[prop2]] <button on-click="_increment">Increment!</button>
+                    </p>`;
+                }
+                _increment(){
+                  this.prop2++;
+                }
+              }
+
+              class DemoComponent3 extends SharedPropertiesMixin(Polymer.Element){
+                static get properties(){
+                  return {
+                    prop3: { 
+                      type: 'Number',
+                      value: 1, // <- Ignored because it have been previously defined
+                      sharedStoreKey: 'foo' // <- Same storeKey in different property
+                    }
+                  }
+                }
+                static get template() {
+                  return Polymer.html`
+                    <p>[[prop3]]</p>
+                    <button on-click="_increment">Increment!!</button>`;
+                }
+                _increment(){
+                  this.prop3++;
+                }
+              }
+  
+              window.customElements.define('demo-component2', DemoComponent2);
+              window.customElements.define('demo-component3', DemoComponent3);
+            </script>
+          </template>
+        </demo-snippet>
+      </div>
+      <div class="vertical-section-container centered">
+          <h3>Share a property without exposing it as binding</h3>
+          <demo-snippet>
+            <template>
+    
+              <demo-component4></demo-component4>
+              <demo-component4></demo-component4>
+    
+              <script>
+                class DemoComponent4 extends SharedPropertiesMixin(Polymer.Element){
+                  constructor(){
+                    super();
+                    this.setSharedProperty('demo', 'dynamicallyAdded', 0);
+                  }
+                  static get template() {
+                    return Polymer.html`
+                      <p>         
+                        [[demo]] <button on-click="_increment">Increment!</button>
+                      </p>`;
+                  }
+                  _increment(){
+                    this.demo++;
+                  }
+                }
+    
+                window.customElements.define('demo-component4', DemoComponent4);
+              </script>
+            </template>
+          </demo-snippet>
+        </div>
+  </body>
+</html>

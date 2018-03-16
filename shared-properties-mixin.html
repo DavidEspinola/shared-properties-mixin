@@ -1,0 +1,333 @@
+<script>
+  SharedPropertiesMixin = Polymer.dedupingMixin(function (superClass) {
+
+    const subscribers = {};
+    const data = {};
+
+    class SharedStore {
+      constructor() {
+        this.subscribers = {};
+        this.data = {};
+      }
+
+      addPropertySubscription(instance, property, storeKey, initialValue){
+        if (!this.subscribers[storeKey]) this.subscribers[storeKey] = [];
+
+        this.subscribers[storeKey].push({
+          instance: instance,
+          mapping: property
+        });
+
+        if (!this.data.hasOwnProperty(storeKey)){
+          if(typeof initialValue === 'function'){
+            this.data[storeKey] = initialValue();
+          } else {
+            this.data[storeKey] = initialValue;
+          }
+        } else {
+          instance[property] = this.data[storeKey];
+        }
+      }
+
+      removeSubscriptions(instance){
+        for (let property in instance.__sharedProperties){
+          const subscribers = this.subscribers[instance.__sharedProperties[property].storeKey];
+          const index = subscribers.findIndex(subscriber => subscriber.instance === instance);
+          if(index !== -1) subscribers.splice(index, 1);
+        }
+      }
+
+      setStoredValue(storeKey, value){
+        this.data[storeKey] = value;
+      }
+
+      getStoredValue(storeKey){
+        return storeKey 
+          ? this.data[storeKey]
+          : this.data;
+      }
+
+      getSubscribers(storeKey){
+        return this.subscribers[storeKey];
+      }
+    }
+
+    const store = new SharedStore();
+
+    return class extends superClass {
+
+      constructor(){
+        super();
+
+        // Shared properties in static method
+        this.__sharedProperties = Object.entries(this.constructor.properties || {})
+          .reduce((result, [property, configs]) => {
+            const config = {
+              storeKey: configs.sharedStoreKey,
+              value: configs.value
+            };
+            result[property] = config;
+            addStoreBindings.bind(this)(property, config);
+            return result;
+          }, {});
+      }
+
+      // Method for adding shared values not in static method (call this in constructor method)
+      setSharedProperty(propertyName, sharedStoreKey, initialValue){
+        const config = {
+          storeKey: sharedStoreKey,
+          value: initialValue
+        }
+        this.__sharedProperties[propertyName] = config;
+        addStoreBindings.bind(this)(propertyName, config);
+      }
+
+      connectedCallback() {
+        super.connectedCallback(); 
+        if(this.__sharedProperties.__wasDetached === true){
+          for (let property in this.__sharedProperties){
+            addStoreBindings.bind(this)(property, this.__sharedProperties[property])
+          }
+        }     
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        store.removeSubscriptions(this);
+        this.__sharedProperties.__wasDetached = true;
+      }
+
+      //Polymer element proxy methods
+
+      push(path, ...items) {
+        const storeKey = getSharedProperty(this, path);
+        if(storeKey){
+          debugger
+          const target = getStoredPath(path, storeKey);
+          if(Array.isArray(target)){
+            const previousLength = target.length;
+            const result = target.push(...items);
+            notifyChanges(path, storeKey, 'notifySplices', [{
+              index: previousLength,
+              removed: [],
+              addedCount: items.length,
+              object: target,
+              type: 'splice'
+            }]);
+            return result;
+          }
+        } else {
+          return super.push(path, ...items);
+        }
+      }
+
+      unshift(path, ...items) {
+        const storeKey = getSharedProperty(this, path);
+        if(storeKey){
+          const target = getStoredPath(path, storeKey);
+          if(Array.isArray(target)){
+            const result = target.unshift(...items);
+            notifyChanges(path, storeKey, 'notifySplices', [{
+              index: 0,
+              removed: [],
+              addedCount: items.length,
+              object: target,
+              type: 'splice'
+            }]);
+            return result;
+          }
+        } else {
+          return super.unshift(path, ...items);
+        }
+      }
+
+      splice(path, start, deleteCount, ...items) {
+        const storeKey = getSharedProperty(this, path);
+        if(storeKey){
+          const target = getStoredPath(path, storeKey);
+          if(Array.isArray(target)){
+            const result = target.splice(start, deleteCount, ...items);
+            notifyChanges(path, storeKey, 'notifySplices', [{
+              index: start,
+              removed: result,
+              addedCount: items.length,
+              object: target,
+              type: 'splice'
+            }]);
+            return result;
+          }
+        } else {
+          return super.unshift(path, ...args);
+        }
+      }
+
+      pop(path) {
+        const storeKey = getSharedProperty(this, path);
+        if(storeKey){
+          const target = getStoredPath(path, storeKey);
+          if(Array.isArray(target)){
+            const previousLength = target.length;
+            const result = target.pop();
+            notifyChanges(path, storeKey, 'notifySplices', [{
+              index: previousLength - 1,
+              removed: result,
+              addedCount: 0,
+              object: target,
+              type: 'splice'
+            }]);
+            return result;
+          }
+        } else {
+          return super.pop(path);
+        }
+      }
+
+      shift(path) {
+        const storeKey = getSharedProperty(this, path);
+        if(storeKey){
+          const target = getStoredPath(path, storeKey);
+          if(Array.isArray(target)){
+            const result = target.shift();
+            notifyChanges(path, storeKey, 'notifySplices', [{
+              index: 0,
+              removed: result,
+              addedCount: 0,
+              object: target,
+              type: 'splice'
+            }]);
+            return result;
+          }
+        } else {
+          return super.shift(path);
+        }
+      }
+
+      set(path, value, root) {
+        const storeKey = getSharedProperty(this, path);
+        if(!root && storeKey){
+          const pathParts = Polymer.Path.split(path);
+
+          if(pathParts.length === 1){
+            store.setStoredValue(storeKey, value);
+            notifyChanges(path, storeKey, 'notifyPath', value);
+            return;
+          }
+
+          const parent = getStoredParentPath(path, storeKey);
+          if(typeof parent === 'object') {
+            parent[Polymer.Path.split(path).pop()] = value;
+            notifyChanges(path, storeKey, 'notifyPath', value);
+          }
+        } else {
+          super.set(path, value, root);
+        }
+      }
+
+      notifyPath(path, value) {
+        const storeKey = getSharedProperty(this, path);
+        if(storeKey){
+          const parent = getStoredParentPath(path, storeKey);
+          if(typeof parent === 'object') {
+            if(value === undefined) value = getStoredPath(path, storeKey);
+            notifyChanges(path, storeKey, 'notifyPath', value);
+          }
+        } else {
+          super.notifyPath(path, value);
+        }
+      }
+      
+      __notifyPath(...args) {
+        super.notifyPath(...args);
+      }
+
+      notifySplices(path, splices) {
+        const storeKey = getSharedProperty(this, path);
+        if(storeKey){
+          const target = getStoredPath(path, storeKey);
+          if(Array.isArray(target)){
+            notifyChanges(path, storeKey, 'notifySplices', splices);
+          }
+        } else {
+          super.notifySplices(path, splices);
+        }
+      }
+
+      __notifySplices(...args) {
+        super.notifySplices(...args);
+      }
+    }
+
+    // Methods not exposed in the class
+    
+    function getSharedProperty(instance, path){
+      const property = Polymer.Path.root(Polymer.Path.normalize(path));
+      return instance.__sharedProperties[property].storeKey;
+    }
+
+    function changePathRoot(path, newRoot) {
+      let newPath = Polymer.Path.split(path);
+      newPath.splice(0, 1, newRoot);
+      return newPath;
+    }
+
+    function notifyChanges(path, storeKey, notifyMethod, changes) {
+      (store.getSubscribers(storeKey) || []).forEach((subscriber) => {
+        const subscriberPath = changePathRoot(path, subscriber.mapping);
+        subscriber.instance['__' + notifyMethod](subscriberPath, changes);
+      });
+    }
+
+    function getStoredPath(path, storeKey){
+      let newPath = Polymer.Path.split(path);
+      if(newPath.length < 2)
+        return store.getStoredValue(storeKey);
+      return Polymer.Path.get(
+        store.getStoredValue(storeKey),
+        newPath.splice(0, 1) && newPath //Path without first level
+      );
+    }
+
+    function getStoredParentPath(path, storeKey){
+      let newPath = Polymer.Path.split(path);
+      newPath.pop(); //Remove last part from path
+      if(!newPath.length)
+        return store.getStoredValue();
+      return getStoredPath(newPath, storeKey);
+    }
+
+    function addStoreBindings(property, propertyConfig){
+      const storeKey = propertyConfig.storeKey;
+      const initialValue = propertyConfig.value;
+      store.addPropertySubscription(this, property, storeKey, initialValue);
+      
+      Object.defineProperty(this, property, {
+        set: generatePropertySetter.call(this),
+        get: () => store.getStoredValue(storeKey),
+        configurable: true
+      });
+
+      function generatePropertySetter(){
+        let propertyEffect;
+        
+        return value => {
+          store.setStoredValue(storeKey, value);
+          notifyChanges(property, storeKey, 'notifyPath', value);
+
+          // Primitive values don't call the setter. The use of propertyEffects let us workaround this
+          if(typeof value !== 'object' && !propertyEffect){
+            propertyEffect = {
+              fn: (target, propertyName, newValues, oldValues) => {
+                this[property] = newValues[propertyName];
+              }
+            };
+            this._addPropertyEffect(property, this.PROPERTY_EFFECT_TYPES.REFLECT, propertyEffect);
+          } else if(typeof value === 'object' && propertyEffect){
+            this._removePropertyEffect(property, this.PROPERTY_EFFECT_TYPES.REFLECT, propertyEffect);
+            propertyEffect = null;
+          }
+        }
+      }
+    }
+
+  });
+</script>
