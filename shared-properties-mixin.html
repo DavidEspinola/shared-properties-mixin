@@ -102,7 +102,6 @@
       push(path, ...items) {
         const storeKey = getSharedProperty(this, path);
         if(storeKey){
-          debugger
           const target = getStoredPath(path, storeKey);
           if(Array.isArray(target)){
             const previousLength = target.length;
@@ -298,7 +297,6 @@
     function addStoreBindings(property, propertyConfig){
       const storeKey = propertyConfig.storeKey;
       const initialValue = propertyConfig.value;
-      store.addPropertySubscription(this, property, storeKey, initialValue);
       
       Object.defineProperty(this, property, {
         set: generatePropertySetter.call(this),
@@ -327,6 +325,9 @@
           }
         }
       }
+
+      store.addPropertySubscription(this, property, storeKey, initialValue);
+
     }
 
   });

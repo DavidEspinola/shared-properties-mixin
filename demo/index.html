@@ -117,7 +117,7 @@
         </demo-snippet>
       </div>
       <div class="vertical-section-container centered">
-          <h3>Share a property without exposing it as binding</h3>
+          <h3>Dynamically share a new property</h3>
           <demo-snippet>
             <template>
     
@@ -128,7 +128,8 @@
                 class DemoComponent4 extends SharedPropertiesMixin(Polymer.Element){
                   constructor(){
                     super();
-                    this.setSharedProperty('demo', 'dynamicallyAdded', 0);
+                    this.demo = 0;
+                    this.setSharedProperty('demo', 'dynamicallyAdded', 1);
                   }
                   static get template() {
                     return Polymer.html`

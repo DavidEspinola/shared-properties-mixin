@@ -32,7 +32,8 @@
       class TestClass2 extends SharedPropertiesMixin(Polymer.Element){
         static get properties(){
           return {
-            testObject2: { type: 'Object', notify: true, sharedStoreKey: 'storeKey' }
+            testObject2: { type: 'Object', notify: true, sharedStoreKey: 'storeKey' },
+            test2: { type: 'Object', notify: true }
           }
         }
       }
@@ -70,6 +71,7 @@
             [firstComp, 'testObject'],
             [secondComp, 'testObject2'],
             [firstComp2, 'testObject'],
+            [secondComp, 'test2']
           );
         });
 
@@ -106,8 +108,8 @@
             let currentValue = 5;
 
             changeOberservers[0]()
-              .then((event) => {
-                assert.equal(currentValue, event.detail.value);
+              .then(() => {
+                assert.equal(currentValue, firstComp.testObject);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 
                 const nextChange = changeOberservers[1]();
@@ -115,13 +117,35 @@
                 firstComp.testObject = currentValue;
                 return nextChange;
 
-              }).then((event) => {
-                assert.equal(currentValue, event.detail.value);
+              }).then(() => {
+                assert.equal(currentValue, secondComp.testObject2);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 done();
               }).catch(done);
 
             secondComp.testObject2 = currentValue;
+          });
+
+          test('Shared properties can be dynamically added and work correctly', (done) => {
+
+            changeOberservers[3]().then(() => {
+              assert.equal(firstComp.test, secondComp.test2);
+              assert.equal(firstComp.test, currentValue);
+
+              const nextChange = changeOberservers[3]();
+              currentValue = 3;
+              firstComp.test = 3;
+              return nextChange;
+
+            }).then(() => {
+              assert.equal(firstComp.test, secondComp.test2);
+              assert.equal(firstComp.test, currentValue);
+              done();
+            }).catch(done);
+
+            let currentValue = 1;
+            firstComp.setSharedProperty('test', 'dynamicStore', 1);
+            secondComp.setSharedProperty('test2', 'dynamicStore', 0);
           });
         });
 
@@ -130,7 +154,7 @@
             firstComp.testObject = [1];
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 
@@ -139,7 +163,7 @@
                 firstComp.push('testObject', 3, 4);
                 return nextChange;
 
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 done();
@@ -153,7 +177,7 @@
             firstComp.testObject = {test: [1]};
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2.test);
                 assert.equal(firstComp.testObject.test, secondComp.testObject2.test);
                 
@@ -162,7 +186,7 @@
                 firstComp.push('testObject.test', 3, 4);
                 return nextChange;
 
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject.test);
                 assert.equal(firstComp.testObject.test, secondComp.testObject2.test);
                 done();
@@ -183,7 +207,7 @@
             firstComp.testObject = [4];
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 
@@ -192,7 +216,7 @@
                 firstComp.unshift('testObject', 1, 2);
                 return nextChange;
 
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 done();
@@ -206,7 +230,7 @@
             firstComp.testObject = {test: [4]};
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2.test);
                 assert.equal(firstComp.testObject.test, secondComp.testObject2.test);
                 
@@ -215,7 +239,7 @@
                 firstComp.unshift('testObject.test', 1, 2);
                 return nextChange;
 
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject.test);
                 assert.equal(firstComp.testObject.test, secondComp.testObject2.test);
                 done();
@@ -236,7 +260,7 @@
             firstComp.testObject = [5, 6];
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 
@@ -245,7 +269,7 @@
                 firstComp.splice('testObject', 2, 0, 3);
                 return nextChange;
 
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 done();
@@ -259,7 +283,7 @@
             firstComp.testObject = {test: [5, 6]};
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2.test);
                 assert.equal(firstComp.testObject.test, secondComp.testObject2.test);
                 
@@ -268,7 +292,7 @@
                 firstComp.splice('testObject.test', 2, 0, 3);
                 return nextChange;
 
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject.test);
                 assert.equal(firstComp.testObject.test, secondComp.testObject2.test);
                 done();
@@ -289,7 +313,7 @@
             firstComp.testObject = [1, 2, 3];
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 
@@ -298,7 +322,7 @@
                 firstComp.pop('testObject');
                 return nextChange;
 
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 done();
@@ -312,7 +336,7 @@
             firstComp.testObject = {test: [1, 2, 3]};
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2.test);
                 assert.equal(firstComp.testObject.test, secondComp.testObject2.test);
                 
@@ -321,7 +345,7 @@
                 firstComp.pop('testObject.test');
                 return nextChange;
 
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject.test);
                 assert.equal(firstComp.testObject.test, secondComp.testObject2.test);
                 done();
@@ -342,7 +366,7 @@
             firstComp.testObject = [1, 2, 3];
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 
@@ -351,7 +375,7 @@
                 firstComp.shift('testObject');
                 return nextChange;
 
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 done();
@@ -365,7 +389,7 @@
             firstComp.testObject = {test: [1, 2, 3]};
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2.test);
                 assert.equal(firstComp.testObject.test, secondComp.testObject2.test);
                 
@@ -374,7 +398,7 @@
                 firstComp.shift('testObject.test');
                 return nextChange;
 
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject.test);
                 assert.equal(firstComp.testObject.test, secondComp.testObject2.test);
                 done();
@@ -395,7 +419,7 @@
             firstComp.testObject = {a: 1};
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 
@@ -404,7 +428,7 @@
                 firstComp.set('testObject', {c: 3});
                 return nextChange;
 
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 done();
@@ -418,7 +442,7 @@
             firstComp.testObject = {test: [{a: 3}]};
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 
@@ -427,7 +451,7 @@
                 firstComp.set('testObject.test.0.a', 1);
                 return nextChange;
 
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 done();
@@ -443,7 +467,7 @@
             firstComp.testObject = {test: [{a: 1}]};
 
             changeOberservers[0]()
-              .then((event) => {
+              .then(() => {
                 assert.deepEqual(currentValue, secondComp.testObject2);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
 
@@ -452,7 +476,7 @@
                 firstComp.testObject.test[0].a = 5;
                 firstComp.notifyPath('testObject.test.0.a', 5);
                 return nextChange;
-              }).then((event) => {
+              }).then(() => {
                 assert.deepEqual(currentValue, firstComp.testObject);
                 assert.equal(firstComp.testObject, secondComp.testObject2);
                 done();
@@ -461,6 +485,32 @@
             let currentValue = {test: [{a: 0}]};
             secondComp.testObject2.test[0].a = 0;
             secondComp.notifyPath('testObject2.test.0.a', 0);
+          });
+        });
+
+        suite('notifySplices method', () => {
+          test('Changes are reflected in all instances', (done) => {
+            firstComp.testObject = {test: {a: []}};
+
+            changeOberservers[0]()
+              .then(() => {
+                assert.deepEqual(currentValue, secondComp.testObject2);
+                assert.equal(firstComp.testObject, secondComp.testObject2);
+
+                const nextChange = changeOberservers[1]();
+                currentValue = {test: {a: [1, 2]}};
+                secondComp.testObject2.test.a.push(2);
+                firstComp.notifySplices('testObject.test.a');
+                return nextChange;
+              }).then(() => {
+                assert.deepEqual(currentValue, firstComp.testObject);
+                assert.equal(firstComp.testObject, secondComp.testObject2);
+                done();
+              }).catch(done);
+
+            let currentValue = {test: {a: [1]}};
+            secondComp.testObject2.test.a.push(1);
+            secondComp.notifySplices('testObject2.test.a');
           });
         });
 
