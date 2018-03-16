@@ -4,7 +4,7 @@
     const subscribers = {};
     const data = {};
 
-    class SharedStore {
+    const SharedStore = class {
       constructor() {
         this.subscribers = {};
         this.data = {};
@@ -54,7 +54,7 @@
 
     const store = new SharedStore();
 
-    return class extends superClass {
+    return class SharedPropertiesMixin extends superClass {
 
       constructor(){
         super();
