@@ -1,0 +1,27 @@
+{
+  "name": "shared-properties-mixin",
+  "version": "1.0.0",
+  "description": "Polymer mixin to enable property syncronization between different component instances through a transparent, zero-configuration shared store",
+  "main": "shared-properties-mixin.html",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "polymer test",
+    "postinstall": "bower install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DavidEspinola/shared-properties-mixin.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DavidEspinola/shared-properties-mixin/issues"
+  },
+  "homepage": "https://github.com/DavidEspinola/shared-properties-mixin#readme",
+  "devDependencies": {
+    "bower": "^1.8.2",
+    "polymer-cli": "^1.6.0"
+  }
+}
