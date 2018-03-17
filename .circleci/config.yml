@@ -19,9 +19,9 @@ jobs:
     steps:
       - checkout
       
-      - run: npm install -g bower
+      - run: npm install bower
       
-      - run: npm install -g polymer
+      - run: npm install polymer-cli
 
       - run: bower install
         
