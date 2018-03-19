@@ -1,5 +1,9 @@
 # \<shared-properties-mixin\>
 
+[![CircleCI](https://circleci.com/gh/DavidEspinola/shared-properties-mixin/tree/master.svg?style=svg)](https://circleci.com/gh/DavidEspinola/shared-properties-mixin/tree/master)
+[![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://www.webcomponents.org/element/DavidEspinola/shared-properties-mixin)
+
+
 Polymer mixin to enable property syncronization between different component instances through a transparent, zero-configuration shared store.
 
 It extends PolymerElement's array and object mutation methods providing syncronization across all instances attached to the same store.
