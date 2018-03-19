@@ -1,4 +1,15 @@
 <script>
+  /**
+   * Polymer mixin class that extends PolymerElement's array and object mutation 
+   * methods providing syncronization across all instances attached to the same store
+   * in a zero configuration setup
+   *
+   * @mixinFunction
+   * @extends {superClass}
+   * @polymer
+   * @summary Polymer mixin to enable property syncronization between different 
+   *   component instances through a transparent, zero-configuration shared store.
+   */
   SharedPropertiesMixin = Polymer.dedupingMixin(function (superClass) {
 
     const subscribers = {};
@@ -70,7 +81,14 @@
           }, {});
       }
 
-      // Method for adding shared values not in static method (call this in constructor method)
+      /**
+       * Method for adding shared values dynamically
+       *
+       * @param {string} propertyName Property name
+       * @param {string} sharedStoreKey Store key wich will be syncronized with target property
+       * @param {*} initialValue Initial value in case no other component has written in the store previously
+       * @return {void}
+       */
       setSharedProperty(propertyName, sharedStoreKey, initialValue){
         const config = {
           storeKey: sharedStoreKey,
@@ -80,6 +98,10 @@
         addStoreBindings.bind(this)(propertyName, config);
       }
 
+      /**
+      * Method that extend from PolymerElement with some extras but same API
+      * See {@link https://www.polymer-project.org/2.0/docs/api/elements/Polymer.Element|PolymerElement docs}
+      */
       connectedCallback() {
         super.connectedCallback(); 
         if(this.__sharedProperties.__wasDetached === true){
@@ -89,14 +111,20 @@
         }     
       }
 
+      /**
+      * Method that extend from PolymerElement with some extras but same API
+      * See {@link https://www.polymer-project.org/2.0/docs/api/elements/Polymer.Element|PolymerElement docs}
+      */
       disconnectedCallback() {
         super.disconnectedCallback();
         store.removeSubscriptions(this);
         this.__sharedProperties.__wasDetached = true;
       }
 
-      //Polymer element proxy methods
-
+      /**
+      * Method that extend from PolymerElement with some extras but same API
+      * See {@link https://www.polymer-project.org/2.0/docs/api/elements/Polymer.Element|PolymerElement docs}
+      */
       push(path, ...items) {
         const storeKey = getSharedProperty(this, path);
         if(storeKey){
@@ -118,6 +146,10 @@
         }
       }
 
+      /**
+      * Method that extend from PolymerElement with some extras but same API
+      * See {@link https://www.polymer-project.org/2.0/docs/api/elements/Polymer.Element|PolymerElement docs}
+      */
       unshift(path, ...items) {
         const storeKey = getSharedProperty(this, path);
         if(storeKey){
@@ -138,6 +170,10 @@
         }
       }
 
+      /**
+      * Method that extend from PolymerElement with some extras but same API
+      * See {@link https://www.polymer-project.org/2.0/docs/api/elements/Polymer.Element|PolymerElement docs}
+      */
       splice(path, start, deleteCount, ...items) {
         const storeKey = getSharedProperty(this, path);
         if(storeKey){
@@ -158,6 +194,10 @@
         }
       }
 
+      /**
+      * Method that extend from PolymerElement with some extras but same API
+      * See {@link https://www.polymer-project.org/2.0/docs/api/elements/Polymer.Element|PolymerElement docs}
+      */
       pop(path) {
         const storeKey = getSharedProperty(this, path);
         if(storeKey){
@@ -179,6 +219,10 @@
         }
       }
 
+      /**
+      * Method that extend from PolymerElement with some extras but same API
+      * See {@link https://www.polymer-project.org/2.0/docs/api/elements/Polymer.Element|PolymerElement docs}
+      */
       shift(path) {
         const storeKey = getSharedProperty(this, path);
         if(storeKey){
@@ -199,6 +243,10 @@
         }
       }
 
+      /**
+      * Method that extend from PolymerElement with some extras but same API
+      * See {@link https://www.polymer-project.org/2.0/docs/api/elements/Polymer.Element|PolymerElement docs}
+      */
       set(path, value, root) {
         const storeKey = getSharedProperty(this, path);
         if(!root && storeKey){
@@ -220,6 +268,10 @@
         }
       }
 
+      /**
+      * Method that extend from PolymerElement with some extras but same API
+      * See {@link https://www.polymer-project.org/2.0/docs/api/elements/Polymer.Element|PolymerElement docs}
+      */
       notifyPath(path, value) {
         const storeKey = getSharedProperty(this, path);
         if(storeKey){
@@ -237,6 +289,10 @@
         super.notifyPath(...args);
       }
 
+      /**
+      * Method that extend from PolymerElement with some extras but same API.
+      * See {@link https://www.polymer-project.org/2.0/docs/api/elements/Polymer.Element|PolymerElement docs}
+      */
       notifySplices(path, splices) {
         const storeKey = getSharedProperty(this, path);
         if(storeKey){
