@@ -1,6 +1,8 @@
 # \<shared-properties-mixin\>
 
-Polymer mixin to enable property syncronization between different component instances through a transparent, zero-configuration shared store
+Polymer mixin to enable property syncronization between different component instances through a transparent, zero-configuration shared store.
+
+It extends PolymerElement's array and object mutation methods providing syncronization across all instances attached to the same store.
 
 ## Install the Polymer-CLI
 
