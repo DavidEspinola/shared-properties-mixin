@@ -71,12 +71,14 @@
         // Shared properties in static method
         this.__sharedProperties = Object.entries(this.constructor.properties || {})
           .reduce((result, [property, configs]) => {
-            const config = {
-              storeKey: configs.sharedStoreKey,
-              value: configs.value
-            };
-            result[property] = config;
-            addStoreBindings.bind(this)(property, config);
+            if(configs.sharedStoreKey){
+              const config = {
+                storeKey: configs.sharedStoreKey,
+                value: configs.value
+              };
+              result[property] = config;
+              addStoreBindings.bind(this)(property, config);
+            }
             return result;
           }, {});
       }
