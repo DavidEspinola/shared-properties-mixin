@@ -316,7 +316,7 @@
     
     function getSharedProperty(instance, path){
       const property = Polymer.Path.root(Polymer.Path.normalize(path));
-      return instance.__sharedProperties[property].storeKey;
+      return (instance.__sharedProperties[property] || {}).storeKey;
     }
 
     function changePathRoot(path, newRoot) {
