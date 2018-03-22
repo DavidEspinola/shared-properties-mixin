@@ -32,7 +32,7 @@
         if (!this.data.hasOwnProperty(storeKey)){
           if(typeof initialValue === 'function'){
             this.data[storeKey] = initialValue();
-          } else {
+          } else if(initialValue !== undefined){
             this.data[storeKey] = initialValue;
           }
         } else {
